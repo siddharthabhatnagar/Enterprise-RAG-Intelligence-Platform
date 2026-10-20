@@ -22,7 +22,8 @@ class Settings(BaseSettings):
 
     # NVIDIA Embeddings Configuration
     NVIDIA_API_KEY: Optional[str] = None
-    NVIDIA_EMBED_MODEL: str = "nvidia/nv-embedqa-e5-v5"
+    NVIDIA_EMBED_MODEL: str = "baai/bge-m3"
+    NVIDIA_FALLBACK_MODEL: str = "nvidia/llama-nemotron-embed-1b-v2"
 
     # Vector Store & Paths
     FAISS_INDEX_PATH: str = str(BASE_DIR / "backend" / "data" / "vector_index")

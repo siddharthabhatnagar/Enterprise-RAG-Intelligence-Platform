@@ -18,7 +18,7 @@ services:
       - key: GROQ_MODEL
         value: openai/gpt-oss-120b
       - key: NVIDIA_EMBED_MODEL
-        value: nvidia/nv-embedqa-e5-v5
+        value: baai/bge-m3
       - key: ENVIRONMENT
         value: production
       - key: LOG_LEVEL

@@ -58,7 +58,7 @@ app.include_router(documents_router)
 app.include_router(users_router)
 app.include_router(analytics_router)
 
-@app.get("/health", tags=["Health"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Health"])
 async def health_check():
     """Lightweight health check endpoint for Render & Docker monitoring."""
     return {
@@ -73,7 +73,7 @@ frontend_dir = BASE_DIR / "frontend"
 if frontend_dir.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_dir)), name="static")
 
-    @app.get("/")
+    @app.api_route("/", methods=["GET", "HEAD"])
     async def serve_index():
         """Serves the main single page web application."""
         return FileResponse(frontend_dir / "index.html")

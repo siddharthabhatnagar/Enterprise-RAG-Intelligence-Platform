@@ -47,16 +47,32 @@ class VectorStoreService:
             logger.error(f"Failed to save document registry: {e}")
 
     def _load_vector_store(self):
-        """Loads FAISS index from disk if index files exist."""
+        """Loads FAISS index from disk if index files exist and verifies dimension compatibility."""
         index_file = self.index_dir / "index.faiss"
         if index_file.exists():
             try:
                 embeddings = EmbeddingService.get_embeddings()
-                self.faiss_store = FAISS.load_local(
+                loaded_store = FAISS.load_local(
                     folder_path=str(self.index_dir),
                     embeddings=embeddings,
                     allow_dangerous_deserialization=True
                 )
+                
+                # Verify dimension compatibility between loaded index and active embeddings
+                try:
+                    probe_vec = embeddings.embed_query("dim_probe")
+                    if hasattr(loaded_store, "index") and loaded_store.index.d != len(probe_vec):
+                        logger.warning(
+                            f"FAISS index on disk has dimension {loaded_store.index.d}, but active "
+                            f"embedding model produces dimension {len(probe_vec)}. "
+                            f"Resetting FAISS index for seamless migration."
+                        )
+                        self.faiss_store = None
+                        return
+                except Exception as probe_err:
+                    logger.warning(f"Dimension probe failed ({probe_err}). Proceeding with loaded store.")
+
+                self.faiss_store = loaded_store
                 logger.info(f"Loaded existing FAISS vector store from {self.index_dir}")
             except Exception as e:
                 logger.warning(f"Could not load local FAISS index ({e}). A fresh index will be initialized.")
@@ -75,13 +91,17 @@ class VectorStoreService:
         total_pages: int,
         file_size_bytes: int
     ) -> int:
-        """Embeds and indexes document chunks in FAISS, updating registry and cache."""
+        """Embeds and indexes document chunks in FAISS, updating registry and cache with dimension auto-healing."""
         embeddings = EmbeddingService.get_embeddings()
 
         if self.faiss_store is None:
             self.faiss_store = FAISS.from_documents(chunks, embeddings)
         else:
-            self.faiss_store.add_documents(chunks)
+            try:
+                self.faiss_store.add_documents(chunks)
+            except Exception as e:
+                logger.warning(f"Failed to append to FAISS store ({e}). Re-initializing index with active model.")
+                self.faiss_store = FAISS.from_documents(chunks, embeddings)
 
         # Cache in memory
         self._all_chunks_cache.extend(chunks)
