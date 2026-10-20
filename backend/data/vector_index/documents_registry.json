@@ -1,0 +1,46 @@
+{
+  "4a59eafcdbab": {
+    "document_id": "4a59eafcdbab",
+    "filename": "Employee_Handbook_General_Policy.pdf",
+    "total_pages": 2,
+    "total_chunks": 4,
+    "department": "general",
+    "access_level": "public",
+    "category": "Corporate Policy",
+    "file_size_bytes": 3909,
+    "uploaded_at": "2026-10-21 00:21:57"
+  },
+  "d00e377876ed": {
+    "document_id": "d00e377876ed",
+    "filename": "Engineering_Cloud_Infrastructure.pdf",
+    "total_pages": 2,
+    "total_chunks": 4,
+    "department": "engineering",
+    "access_level": "internal",
+    "category": "Architecture",
+    "file_size_bytes": 3952,
+    "uploaded_at": "2026-10-21 00:21:57"
+  },
+  "b0ac62d61fd4": {
+    "document_id": "b0ac62d61fd4",
+    "filename": "Q3_Confidential_Financial_Audit.pdf",
+    "total_pages": 2,
+    "total_chunks": 4,
+    "department": "finance",
+    "access_level": "confidential",
+    "category": "Financial Report",
+    "file_size_bytes": 3804,
+    "uploaded_at": "2026-10-21 00:21:58"
+  },
+  "262357542300": {
+    "document_id": "262357542300",
+    "filename": "HR_Executive_Compensation_2026.pdf",
+    "total_pages": 2,
+    "total_chunks": 4,
+    "department": "hr",
+    "access_level": "restricted",
+    "category": "Executive Compensation",
+    "file_size_bytes": 3704,
+    "uploaded_at": "2026-10-21 00:21:58"
+  }
+}

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise RAG Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-logo">R</div>
+      <div class="brand-title">
+        <h1>Enterprise RAG Intelligence</h1>
+        <div class="brand-sub">
+          <span id="groq-status-badge" class="tech-badge">Groq: gpt-oss-120b</span>
+          <span id="nvidia-status-badge" class="tech-badge">NVIDIA: nv-embedqa-e5-v5</span>
+          <span class="tech-badge">LangChain Pure</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active User & RBAC Selector -->
+    <div class="user-identity-box">
+      <span class="identity-label">Clearance Identity:</span>
+      <div class="user-selector-wrapper">
+        <select id="user-select" class="user-select">
+          <option value="admin">Loading identities...</option>
+        </select>
+      </div>
+      <span id="user-clearance-badge" class="clearance-pill clearance-restricted">RESTRICTED</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="search">
+      <span>🔍</span> Intelligent Search & Q&A
+    </button>
+    <button class="tab-btn" data-tab="documents">
+      <span>📚</span> Knowledge Base
+    </button>
+    <button class="tab-btn" data-tab="ingest">
+      <span>📤</span> Ingestion Portal
+    </button>
+    <button class="tab-btn" data-tab="overview">
+      <span>🛡️</span> Architecture & RBAC
+    </button>
+  </nav>
+
+  <!-- Main App Content Container -->
+  <main class="main-content">
+
+    <!-- ====================================================
+         TAB 1: Intelligent Search & Q&A (RAG)
+         ==================================================== -->
+    <section id="tab-search" class="tab-pane active">
+      <div class="search-card">
+        <div class="search-bar-row">
+          <div class="query-input-wrapper">
+            <input 
+              type="text" 
+              id="query-input" 
+              class="query-input" 
+              placeholder="Ask an enterprise question across internal documents..."
+              autocomplete="off"
+            />
+          </div>
+          <select id="dept-filter" class="query-filter-select">
+            <option value="all">All Departments</option>
+            <option value="general">General / HR Policy</option>
+            <option value="engineering">Engineering</option>
+            <option value="finance">Finance</option>
+            <option value="hr">HR & Executive</option>
+          </select>
+          <button id="search-btn" class="btn-primary">
+            <span>Submit Query</span> ➔
+          </button>
+        </div>
+
+        <!-- Quick Prompt Chips for Instant Testing -->
+        <div class="quick-prompts-row">
+          <span class="quick-prompts-label">Try Test Prompts:</span>
+          <button class="prompt-chip" data-prompt="What is our annual vacation leave and hybrid remote work policy?">
+            🏖️ Vacation & Remote Work Policy (Public)
+          </button>
+          <button class="prompt-chip" data-prompt="Explain the AWS microservices topology, Redis cache sizing, and canary rollout stages.">
+            ⚙️ Cloud Infrastructure & Redis (Internal)
+          </button>
+          <button class="prompt-chip" data-prompt="What was our Q3 EBITDA margin and how much was reserved for Project Falcon?">
+            💰 Q3 Financial EBITDA & Escrow (Confidential)
+          </button>
+          <button class="prompt-chip" data-prompt="What is the CEO base salary and 2026 Executive incentive pool total?">
+            🔒 Executive Compensation Pool (Restricted)
+          </button>
+        </div>
+      </div>
+
+      <!-- Response & Citations Container -->
+      <div id="response-container" class="response-container">
+        
+        <!-- Answer Card -->
+        <div class="answer-card">
+          <div class="answer-header">
+            <div class="answer-title">
+              <span>🤖</span> Synthesized Intelligence Response
+            </div>
+            <div id="grounding-verdict-pill" class="clearance-pill clearance-public">
+              HIGH FAITHFULNESS
+            </div>
+          </div>
+          
+          <div id="answer-text" class="answer-body">
+            <!-- Answer populated via JS -->
+          </div>
+
+          <!-- Grounding & Latency Metrics -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span>Grounding & Faithfulness</span>
+                <span id="grounding-score-num" class="metric-sub" style="font-weight: 700; color: #34d399;">100%</span>
+              </div>
+              <div class="meter-track">
+                <div id="grounding-meter-fill" class="meter-fill meter-fill-emerald" style="width: 100%;"></div>
+              </div>
+              <p id="grounding-reasoning" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.5rem;">
+                All claims matched directly in retrieved context.
+              </p>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span>Total Latency</span>
+                <span id="latency-total" class="metric-sub">0 ms</span>
+              </div>
+              <div class="metric-value-row" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; display: flex; justify-content: space-between;">
+                <span>Vector: <strong id="latency-retrieval" style="color: var(--text-primary);">0 ms</strong></span>
+                <span>Rerank: <strong id="latency-rerank" style="color: var(--text-primary);">0 ms</strong></span>
+                <span>LLM: <strong id="latency-llm" style="color: var(--text-primary);">0 ms</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Structured Citations -->
+          <div class="citations-section">
+            <h3 class="section-title">
+              <span>📑</span> Source Citations & Excerpts
+            </h3>
+            <div id="citations-grid" class="citations-grid">
+              <!-- Citations populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Retrieval Inspector Drawer -->
+          <div id="debug-drawer" class="debug-drawer">
+            <div id="debug-drawer-header" class="debug-drawer-header">
+              <span>🔬 Retrieval & Reranker Inspector (Debug Candidates)</span>
+              <span>▼ Toggle</span>
+            </div>
+            <div class="debug-drawer-body">
+              <table class="debug-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Document</th>
+                    <th>Page</th>
+                    <th>Clearance</th>
+                    <th>Vector Score</th>
+                    <th>Rerank Score</th>
+                    <th>Chunk Excerpt</th>
+                  </tr>
+                </thead>
+                <tbody id="debug-table-body">
+                  <!-- Chunks populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================
+         TAB 2: Documents Knowledge Base
+         ==================================================== -->
+    <section id="tab-documents" class="tab-pane">
+      <div class="docs-summary-row">
+        <div class="stat-box">
+          <div class="stat-box-title">Indexed Documents</div>
+          <div id="stat-total-docs" class="stat-box-num">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-title">Vector Chunks</div>
+          <div id="stat-total-chunks" class="stat-box-num">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-title">Top Department</div>
+          <div id="stat-top-dept" class="stat-box-num">General</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-title">Vector Store</div>
+          <div class="stat-box-num" style="font-size: 1.4rem;">FAISS Local</div>
+        </div>
+      </div>
+
+      <div class="docs-table-wrapper">
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Document Name</th>
+              <th>Department</th>
+              <th>Security Clearance</th>
+              <th>Pages</th>
+              <th>Chunks</th>
+              <th>File Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docs-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                Loading knowledge base...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====================================================
+         TAB 3: Document Ingestion Portal
+         ==================================================== -->
+    <section id="tab-ingest" class="tab-pane">
+      <div class="ingest-grid">
+        
+        <div class="ingest-card">
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Upload Enterprise Document</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+            PDF documents are parsed per-page, chunked with semantic overlap, embedded with NVIDIA models, and indexed in FAISS with document-level security tags.
+          </p>
+
+          <div id="dropzone" class="dropzone">
+            <div class="dropzone-icon">📄</div>
+            <div class="dropzone-text">Click to choose or drag & drop a PDF file</div>
+            <div class="dropzone-sub">Supports PDF up to 50MB</div>
+            <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;" />
+          </div>
+          <p id="selected-file-name" style="display: none; color: #60a5fa; font-size: 0.88rem; font-weight: 600; margin-bottom: 1rem;"></p>
+
+          <button id="ingest-btn" class="btn-primary" style="width: 100%; justify-content: center; height: 48px;">
+            Start Ingestion & Indexing ➔
+          </button>
+        </div>
+
+        <div class="ingest-card">
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Security & Metadata Tagging</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+            Configure access clearance boundaries before indexing to enforce strict retrieval-level RBAC.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Owning Department</label>
+            <select id="ingest-dept" class="form-control">
+              <option value="general">General / Enterprise-Wide</option>
+              <option value="engineering">Engineering & Architecture</option>
+              <option value="finance">Finance & Auditing</option>
+              <option value="hr">Human Resources</option>
+              <option value="legal">Legal & Compliance</option>
+              <option value="executive">Executive Committee</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Security Clearance Level</label>
+            <select id="ingest-clearance" class="form-control">
+              <option value="public">Public (All employees & contractors)</option>
+              <option value="internal" selected>Internal (Full-time employees & managers)</option>
+              <option value="confidential">Confidential (Department Managers & Execs)</option>
+              <option value="restricted">Restricted (C-Level & Admins Only)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Document Category / Tag</label>
+            <input type="text" id="ingest-category" class="form-control" placeholder="e.g. Policy, Architecture, Financial Audit, Compensation" />
+          </div>
+
+          <div style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid var(--accent-blue); padding: 0.85rem 1rem; border-radius: 6px; font-size: 0.82rem; color: #94a3b8; margin-top: 1.5rem;">
+            <strong>RBAC Guarantee:</strong> Chunks marked <em>Restricted</em> or <em>Confidential</em> are filtered at the FAISS retrieval stage and never fed into LLM prompts for lower-clearance users.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================
+         TAB 4: Architecture & Security Overview
+         ==================================================== -->
+    <section id="tab-overview" class="tab-pane">
+      <div class="ingest-card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Enterprise RAG Architecture Pipeline</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+          Pure LangChain LCEL implementation with zero LangGraph or CrewAI overhead for predictable latency and enterprise auditability.
+        </p>
+
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; overflow-x: auto; font-family: monospace; font-size: 0.85rem; line-height: 1.8;">
+          <span style="color: #60a5fa;">[PDF Upload]</span> ➔ PyMuPDF Page Text Extraction ➔ Recursive Splitter (650 char chunks, 100 overlap)<br/>
+          &nbsp;&nbsp;➔ <span style="color: #a78bfa;">[Embeddings]</span> NVIDIA NIM API (<strong style="color: #cbd5e1;">nvidia/nv-embedqa-e5-v5</strong>) or FastEmbed BGE Fallback<br/>
+          &nbsp;&nbsp;➔ <span style="color: #34d399;">[Vector DB]</span> FAISS CPU Persistent Index (<strong style="color: #cbd5e1;">similarity_search_with_score</strong>)<br/>
+          &nbsp;&nbsp;➔ <span style="color: #f43f5e;">[Security Gateway]</span> Document-Level RBAC Filter (Role & Clearance Enforcement)<br/>
+          &nbsp;&nbsp;➔ <span style="color: #fbbf24;">[Stage-2 Reranker]</span> Semantic Cross-Attention + Lexical BM25 Scoring (Top-N Chunks)<br/>
+          &nbsp;&nbsp;➔ <span style="color: #38bdf8;">[LangChain LCEL]</span> PromptTemplate | ChatGroq (<strong style="color: #cbd5e1;">openai/gpt-oss-120b</strong>) | StrOutputParser<br/>
+          &nbsp;&nbsp;➔ <span style="color: #4ade80;">[Guardrails]</span> Hallucination Detector (Faithfulness %, Entity Presence & Citation Match)
+        </div>
+      </div>
+
+      <div class="ingest-card">
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Role-Based Document Access Control (RBAC) Matrix</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+          Demonstrates how data leakage is prevented across clearance boundaries.
+        </p>
+
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Default Clearance</th>
+              <th>Public Docs</th>
+              <th>Internal Docs</th>
+              <th>Confidential Docs</th>
+              <th>Restricted Docs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Contractor (David Miller)</strong></td>
+              <td><span class="clearance-pill clearance-public">PUBLIC</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+            </tr>
+            <tr>
+              <td><strong>Software Engineer (Chloe Zhang)</strong></td>
+              <td><span class="clearance-pill clearance-internal">INTERNAL</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed (Eng + General)</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+            </tr>
+            <tr>
+              <td><strong>Finance Controller (Raj Patel)</strong></td>
+              <td><span class="clearance-pill clearance-confidential">CONFIDENTIAL</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed (Finance + General)</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+            </tr>
+            <tr>
+              <td><strong>HR Director (Sarah Jenkins)</strong></td>
+              <td><span class="clearance-pill clearance-confidential">CONFIDENTIAL</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed (HR + General)</td>
+              <td style="color: #f87171;">✗ Blocked</td>
+            </tr>
+            <tr>
+              <td><strong>CEO / Executive (Marcus Sterling)</strong></td>
+              <td><span class="clearance-pill clearance-restricted">RESTRICTED</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed (All)</td>
+            </tr>
+            <tr>
+              <td><strong>Security & IT Admin (Elena Vance)</strong></td>
+              <td><span class="clearance-pill clearance-restricted">RESTRICTED</span></td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed</td>
+              <td style="color: #34d399;">✓ Allowed (All)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Document Chunks Inspector -->
+  <div id="chunks-modal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="chunks-modal-title" style="font-size: 1.1rem; font-weight: 700;">Document Chunks Inspector</h3>
+        <button id="chunks-modal-close" class="modal-close">&times;</button>
+      </div>
+      <div id="chunks-modal-body" class="modal-body">
+        <!-- Chunks list rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
